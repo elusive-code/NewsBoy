@@ -16,6 +16,7 @@
 
 package com.elusive_code.newsboy;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
@@ -59,15 +60,7 @@ public class AsyncEventService implements EventService {
      */
     private Lock listenersLock = new ReentrantLock();
 
-    /**
-     * Last event publishing order, used for {@link #publishOrdered(Object)}
-     */
-    private AtomicLong lastPublishOrder = new AtomicLong(Long.MIN_VALUE);
-
-    /**
-     * Last event notification order, used for {@link #publishOrdered(Object)}
-     */
-    private AtomicLong lastNotifyOrder = new AtomicLong(Long.MIN_VALUE);
+    private PublishAction lastOrderedEvent = null;
 
     private ForkJoinPool notificatorPool;
 
@@ -153,10 +146,9 @@ public class AsyncEventService implements EventService {
     @Subscribe
     public List<NotificationFuture> publishOrdered ( Object event ) {
         if ( event == null ) return Collections.EMPTY_LIST;
-        long publishOrder = lastPublishOrder.getAndIncrement();
-        PublishAction task = new PublishAction ( event, publishOrder );
-        notificatorPool.execute ( task );
-        return new ArrayList<NotificationFuture>(task.getNotifiers());
+        lastOrderedEvent = new PublishAction ( event, lastOrderedEvent, true );
+        notificatorPool.execute ( lastOrderedEvent );
+        return new ArrayList<NotificationFuture>(lastOrderedEvent.getNotifiers());
     }
 
     private void addListenerByClass (Class clazz, WeakEventHandler handler) {
@@ -179,21 +171,23 @@ public class AsyncEventService implements EventService {
      */
     protected class PublishAction extends RecursiveAction {
 
-        private Object event;
-        private Long   eventOrder;
+        private Object                  event;
         private List<EventNotifierTask> notifiers;
+        private PublishAction           previousEvent;
+        private boolean                 ordered;
 
         public PublishAction(Object event) {
-            this(event, null);
+            this(event, null, false);
         }
 
-        public PublishAction(Object event, Long order) {
+        public PublishAction(Object event, PublishAction previousEvent, boolean ordered) {
             this.event = event;
-            this.eventOrder = order;
+            this.ordered = ordered;
+            this.previousEvent = previousEvent;
             this.notifiers = Collections.unmodifiableList(collectNotifiers());
         }
 
-        public List<EventNotifierTask> getNotifiers(){
+        public List<EventNotifierTask> getNotifiers() {
             return notifiers;
         }
 
@@ -201,13 +195,13 @@ public class AsyncEventService implements EventService {
          * Collects all notifiers for current event
          * @return
          */
-        private LinkedList<EventNotifierTask> collectNotifiers(){
+        private LinkedList<EventNotifierTask> collectNotifiers() {
             LinkedList<EventNotifierTask> notifiers = new LinkedList<>();
 
             listenersLock.lock();
             try {
                 Set<Class> classes = EventServiceHelper.collectClassHierarchy(event.getClass());
-                for ( Class clazz : classes) {
+                for (Class clazz : classes) {
                     Set<WeakEventHandler> handlers = listenersByClass.get(clazz);
                     if (handlers != null) {
                         Iterator<WeakEventHandler> i = handlers.iterator();
@@ -231,36 +225,28 @@ public class AsyncEventService implements EventService {
         }
 
         protected void compute() {
-
-            //if event ordered wait for it's turn
-            //note: strict order inequality is necessary because of counter overflow
-            while (eventOrder != null && lastNotifyOrder.get() != eventOrder.longValue()) {
-                try {
-                    //we use synchronized just to acquire object monitor to call "wait"
-                    synchronized (lastNotifyOrder) {
-                        lastNotifyOrder.wait();
-                    }
-                } catch (InterruptedException ex) {
-                    LOG.severe("PublishAction interrupted, while waiting for it's turn " + this);
+            try {
+                //if event ordered and it's not first one wait for it's turn
+                if (previousEvent != null) {
+                    previousEvent.quietlyJoin();
                 }
-            }
 
-            //scheduling notification
-            for (EventNotifierTask task: getNotifiers()){
-                task.fork();
-            }
-
-            //if event ordered notify other ordered events
-            if (eventOrder != null) {
+                //scheduling notification
                 for (EventNotifierTask task : getNotifiers()) {
-                    task.quietlyJoin();
+                    task.fork();
                 }
-                lastNotifyOrder.incrementAndGet();
 
-                //we use synchronized just to acquire object monitor to call "notifyAll"
-                synchronized (lastNotifyOrder){
-                    lastNotifyOrder.notifyAll();
+                //if event ordered we should wait for notifications to complete
+                //so that next event won't fire until we notify of this one
+                if (ordered) {
+                    for (EventNotifierTask task : getNotifiers()) {
+                        task.quietlyJoin();
+                    }
                 }
+            } finally {
+                //for processed events we need to set previous to null to prevent memory leak
+                //(chaining events with hard references like current event->prev->prev->.....->first event)
+                previousEvent = null;
             }
         }
     }
