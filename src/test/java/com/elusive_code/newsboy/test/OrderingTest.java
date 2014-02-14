@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutionException;
 @RunWith(JUnit4.class)
 public class OrderingTest {
 
-    private int eventAmount = 20000;
+    private int eventAmount = 10000;
     private int parallelism = 10;
     private boolean showProgress = true;
 
