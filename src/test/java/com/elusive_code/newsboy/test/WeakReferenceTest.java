@@ -30,12 +30,20 @@ import java.util.concurrent.ExecutionException;
 @RunWith(JUnit4.class)
 public class WeakReferenceTest {
 
+    private int listeners = 100000;
+
     @Test
     public void test() throws Throwable {
         AsyncEventService eventService = new AsyncEventService();
+        System.out.println("Weak reference test being performed with listeners="+listeners);
+        Runtime runtime = Runtime.getRuntime();
 
-        eventService.subscribe(new EventListener());
+        for (int i=0; i<listeners; i++) {
+            eventService.subscribe(new EventListener());
+        }
+        System.out.println("Memory used after subscription: "+(runtime.totalMemory()-runtime.freeMemory()));
         System.gc();
+        System.out.println("Memory used before notification: "+(runtime.totalMemory()-runtime.freeMemory()));
         Collection<NotificationFuture> results = eventService.publish(new Object());
 
         for (NotificationFuture f: results) {
@@ -45,6 +53,14 @@ public class WeakReferenceTest {
                 throw ex.getCause();
             }
         }
+    }
+
+    public int getListeners() {
+        return listeners;
+    }
+
+    public void setListeners(int listeners) {
+        this.listeners = listeners;
     }
 
     public static class EventListener{
