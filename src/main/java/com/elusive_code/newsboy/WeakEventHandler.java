@@ -34,13 +34,12 @@ import java.util.logging.Logger;
  * @see AsyncEventService
  * @author Vladislav Dolgikh
  */
-public class WeakEventHandler{
+public class WeakEventHandler {
     public static final Logger LOG = Logger.getLogger(WeakEventHandler.class.getName());
 
     private WeakReference target;
     private Method        method;
     private Class         eventType;
-//    private Set<Class>    eventTypeHierarchy;
 
     /**
      * <p>Constructor that accepts target object and method that will perform event handling</p>
@@ -71,10 +70,6 @@ public class WeakEventHandler{
             this.eventType = args[0];
         }
 
-//        this.eventTypeHierarchy = new HashSet<>();
-//        EventServiceHelper.collectClassHierarchy(eventType, eventTypeHierarchy);
-//        this.eventTypeHierarchy = Collections.unmodifiableSet(eventTypeHierarchy);
-
         this.target = new WeakReference(target);
         this.method = method;
     }
@@ -103,14 +98,6 @@ public class WeakEventHandler{
     public Class getEventType() {
         return eventType;
     }
-
-    /**
-     * Returns full class hierarchy of event type (all interfaces, all parent classes)
-     * @return
-     */
-//    public Set<Class> getEventTypeHierarchy(){
-//        return eventTypeHierarchy;
-//    }
 
     /**
      * <p>Invokes event handling method.</p>

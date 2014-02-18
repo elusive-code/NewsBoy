@@ -76,7 +76,6 @@ public class AsyncEventService implements EventService {
     public void subscribe(Object object) {
         if (object == null) return;
 
-        Class clazz = object.getClass();
         LinkedList<WeakEventHandler> eventHandlers = EventServiceHelper.createObjectEventHandlers(object);
 
         listenersLock.lock();
@@ -84,9 +83,6 @@ public class AsyncEventService implements EventService {
             listeners.put(object, eventHandlers);
             for (WeakEventHandler handler : eventHandlers) {
                 addListenerByClass(handler.getEventType(), handler);
-//                for (Class c : handler.getEventTypeHierarchy()) {
-//                    addListenerByClass(c, handler);
-//                }
             }
         } finally {
             listenersLock.unlock();
@@ -104,9 +100,6 @@ public class AsyncEventService implements EventService {
 
             for (WeakEventHandler handler : handlers) {
                 removeListenerByClass(handler.getEventType(), handler);
-//                for (Class c : handler.getEventTypeHierarchy()) {
-//                    removeListenerByClass(c,handler);
-//                }
             }
         } finally {
             listenersLock.unlock();
