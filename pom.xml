@@ -62,7 +62,7 @@ https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With
 
     <scm>
         <url>https://github.com/elusive-code/NewsBoy</url>
-        <connection>scm:git:https://github.com/elusive-code/NewsBoy.git</connection>
+        <connection>scm:git:git@github.com:elusive-code/NewsBoy.git</connection>
         <developerConnection>scm:git:git@github.com:elusive-code/NewsBoy.git</developerConnection>
     </scm>
 
