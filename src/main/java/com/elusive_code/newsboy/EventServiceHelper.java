@@ -35,7 +35,7 @@ public class EventServiceHelper {
      * creates a list of {@link com.elusive_code.newsboy.WeakEventHandler} for this object</p>
      *
      * @param object for
-     * @return
+     * @return list of created event handlers
      */
     public static LinkedList<WeakEventHandler> createObjectEventHandlers(Object object) {
 
@@ -60,7 +60,7 @@ public class EventServiceHelper {
      * with second parameter set to null.</p>
      *
      * @param clazz
-     * @return
+     * @return collection of classes that form hierarchy of supplied class
      */
     public static Set<Class> collectClassHierarchy(Class clazz) {
         return collectClassHierarchy(clazz,null);

@@ -186,7 +186,7 @@ public class AsyncEventService implements EventService {
 
         /**
          * Collects all notifiers for current event
-         * @return
+         * @return list of notification tasks
          */
         private LinkedList<EventNotifierTask> collectNotifiers() {
             LinkedList<EventNotifierTask> notifiers = new LinkedList<>();

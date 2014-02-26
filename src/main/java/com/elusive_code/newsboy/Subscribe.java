@@ -36,7 +36,7 @@ public @interface Subscribe {
     /**
      * When method has no arguments, it still could be
      * subscribed to events, and this parameter specifies which ones.
-     * @return
+     * @return class of the events to subscribe
      */
     Class eventType() default Object.class;
 
