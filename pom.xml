@@ -30,7 +30,7 @@ https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With
 
     <groupId>com.elusive-code.newsboy</groupId>
     <artifactId>NewsBoy</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <packaging>jar</packaging>
 
     <name>NewsBoy</name>
