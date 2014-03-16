@@ -23,6 +23,12 @@ Maven should be run with following arguments
 Useful links:
 https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide
 https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With+Maven
+https://help.github.com/articles/generating-ssh-keys
+https://maven.apache.org/settings.html
+http://maven.apache.org/ref/3.2.1/maven-settings/settings.html
+http://www.thegameofcode.com/2012/09/maven-and-github.html
+http://datumedge.blogspot.ru/2012/05/publishing-from-github-to-maven-central.html
+http://blog.sonatype.com/2009/09/maven-tips-and-tricks-using-github/#.UyWdAvl_t3g
 -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
