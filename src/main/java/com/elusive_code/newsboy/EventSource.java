@@ -16,7 +16,6 @@
 
 package com.elusive_code.newsboy;
 
-import java.util.List;
 
 /**
  * <p>Publish-subscribe style communication</p>
@@ -30,28 +29,30 @@ import java.util.List;
  *     that fit the type of that argument.<br>
  *     <li>If event handling method has no arguments, listener will notified of the events that fit {@link Subscribe#eventType()}
  *     </ul>
- * @see com.elusive_code.newsboy.Subscribe
+ * @see com.elusive_code.newsboy.Subscribe, com.elusive_code.newsboy.EventService
  * @see AsyncEventService
  * @author Vladislav Dolgikh
  */
-public interface EventService extends EventSource {
+public interface EventSource {
 
     /**
-     * <p>Publish event to this EventService.</p>
-     * <p>No delivery order guaranteed.</p>
-     * @param event event to notify of
-     * @return list of {@link com.elusive_code.newsboy.NotificationFuture} that represent scheduled notifications
-     */
-    List<NotificationFuture> publish(Object event);
-
-    /**
+     * <p>Subscribe for events from this EventService.</p>
      *
-     * <p>Publish event to this EventService.</p>
-     * <p>Guaranteed to deliver event in the same order it was published
-     * relative to other <b>ordered</b> events</p>
-     * @param event event to notify of
-     * @return list of {@link com.elusive_code.newsboy.NotificationFuture} that represent scheduled notifications
+     * <p>Subscriber should have method or methods marked with
+     * {@link com.elusive_code.newsboy.Subscribe}
+     * annotation.<br>
+     * If annotated method has no arguments, it still will be subscribed and notified
+     * of the events of type specified in annotation parameter.
+     * </p>
+     *
+     * @param listener listener to receive events
+     * @see com.elusive_code.newsboy.Subscribe
      */
-    List<NotificationFuture> publishOrdered(Object event);
-    
+    void subscribe(Object listener);
+
+    /**
+     * <p>Unsubscribe listener from events from this EventService</p>
+     * @param listener listener to
+     */
+    void unsubscribe(Object listener);
 }
