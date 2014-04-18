@@ -3,6 +3,7 @@
 NewsBoy is a library that provides publish-subscribe style communication between Java components.
 
 NewsBoy mimics EventBus from Google Guava, but has several differences:
+
 - it uses weak references
 - it is asynchronous
 - it is concurrent
@@ -19,6 +20,17 @@ NewsBoy mimics EventBus from Google Guava, but has several differences:
 1. Java SE 7
 2. JUnit4 for tests
 
+## Maven
+```xml
+
+    <dependency>
+        <groupId>com.elusive-code.newsboy</groupId>
+        <artifactId>NewsBoy</artifactId>
+        <version>0.1</version>
+    </dependency>
+
+```
+
 ## Usage
 
 1. Create instance of AsyncEventService
@@ -29,52 +41,53 @@ NewsBoy mimics EventBus from Google Guava, but has several differences:
 ## Example
 
 ```Java
-public class SimpleExample {
 
-    public static class Event {
-        private String eventInfo;
+    public class SimpleExample {
 
-        public Event(String eventInfo) {
-            this.eventInfo = eventInfo;
+        public static class Event {
+            private String eventInfo;
+
+            public Event(String eventInfo) {
+                this.eventInfo = eventInfo;
+            }
+
+            public String getEventInfo() {
+                return eventInfo;
+            }
         }
 
-        public String getEventInfo() {
-            return eventInfo;
+        public static class Listener {
+
+            @Subscribe
+            public void printEvent(Event event){
+                System.out.println("Something happens: " + event.getEventInfo());
+            }
         }
-    }
 
-    public static class Listener {
+        public static void main(String[] args) {
 
-        @Subscribe
-        public void printEvent(Event event){
-            System.out.println("Something happens: " + event.getEventInfo());
-        }
-    }
+            // initial setup
+            // create event service and listener
+            EventService eventService = new AsyncEventService();
+            Listener listener = new Listener();
+            eventService.subscribe(listener);
 
-    public static void main(String[] args) {
+            //event publishing
+            //results will contain java.util.concurrent.Future that represent notifications
+            Collection<NotificationFuture> results = eventService.publish(new Event("Some event"));
 
-        // initial setup
-        // create event service and listener
-        EventService eventService = new AsyncEventService();
-        Listener listener = new Listener();
-        eventService.subscribe(listener);
-
-        //event publishing
-        //results will contain java.util.concurrent.Future that represent notifications
-        Collection<NotificationFuture> results = eventService.publish(new Event("Some event"));
-
-        //this will make us wait until all listeners processed event
-        for (NotificationFuture future: results) {
-            try{
-                future.get();
-            }catch (Exception ex){
-                ex.printStackTrace();
+            //this will make us wait until all listeners processed event
+            for (NotificationFuture future: results) {
+                try{
+                    future.get();
+                }catch (Exception ex){
+                    ex.printStackTrace();
+                }
             }
         }
 
     }
 
-}
 ```
 
 ## License
