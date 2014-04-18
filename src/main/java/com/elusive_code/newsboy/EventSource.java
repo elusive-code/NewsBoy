@@ -18,7 +18,7 @@ package com.elusive_code.newsboy;
 
 
 /**
- * <p>Publish-subscribe style communication</p>
+ * <p>This interface represents event source, e.g. object that produces events to which others may subscribe</p>
  * <p>
  *     To receive events object must have public method with zero or one argument
  *     marked with {@link com.elusive_code.newsboy.Subscribe} annotation.<br>

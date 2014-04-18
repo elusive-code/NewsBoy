@@ -20,16 +20,19 @@ import java.util.List;
 
 /**
  * <p>Publish-subscribe style communication</p>
+ * <p>This interface represents event exchange service or subscribe "topic".
+ * Other objects may subscribe for events published in this event service as well as publish their own events here</p>
+ *
  * <p>
  *     To receive events object must have public method with zero or one argument
  *     marked with {@link com.elusive_code.newsboy.Subscribe} annotation.<br>
  *     This object should be passed to {@link com.elusive_code.newsboy.EventService#subscribe(Object)}.<br>
  * </p>
- *     <ul>
+ * <ul>
  *     <li>If event handling method has one argument, listener will be notified of the events
  *     that fit the type of that argument.<br>
  *     <li>If event handling method has no arguments, listener will notified of the events that fit {@link Subscribe#eventType()}
- *     </ul>
+ * </ul>
  * @see com.elusive_code.newsboy.Subscribe
  * @see AsyncEventService
  * @author Vladislav Dolgikh
