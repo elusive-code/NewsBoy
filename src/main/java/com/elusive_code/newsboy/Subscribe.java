@@ -34,10 +34,25 @@ import java.lang.annotation.Target;
 public @interface Subscribe {
 
     /**
+     * <p>
      * When method has no arguments, it still could be
      * subscribed to events, and this parameter specifies which ones.
+     * </p>
      * @return class of the events to subscribe
      */
     Class eventType() default Object.class;
+
+    /**
+     * <p>
+     *     This parameter could be used to mark method argument
+     *     in which event source should be passed in ambiguous cases.
+     * </p>
+     * <p>
+     *     Use -1, if you don't want to pass event source.
+     *     (for example you want to subscribe to 'EventSource'-type events)
+     * </p>
+     * @return index of argument for EventSource to be passed
+     */
+    int eventSourceParameter() default -2;
 
 }

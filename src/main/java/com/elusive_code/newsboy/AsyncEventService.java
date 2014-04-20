@@ -205,7 +205,7 @@ public class AsyncEventService implements EventService {
                                 //listener collected by GC
                                 i.remove();
                             } else {
-                                EventNotifierTask task = new EventNotifierTask(eventHandler, event);
+                                EventNotifierTask task = new EventNotifierTask(eventHandler, event, AsyncEventService.this);
                                 notifiers.add(task);
                             }
                         }

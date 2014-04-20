@@ -19,6 +19,7 @@ package com.elusive_code.newsboy;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -40,6 +41,8 @@ public class WeakEventHandler {
     private WeakReference target;
     private Method        method;
     private Class         eventType;
+    private int           sourceParameter;
+    private int           eventParameter;
 
     /**
      * <p>Constructor that accepts target object and method that will perform event handling</p>
@@ -58,20 +61,66 @@ public class WeakEventHandler {
         if (target == null) throw new IllegalArgumentException("Target is null");
         if (method == null) throw new IllegalArgumentException("Method is null");
 
+        this.target = new WeakReference(target);
+        this.method = method;
+
         Subscribe annotation = method.getAnnotation(Subscribe.class);
+        this.sourceParameter = annotation.eventSourceParameter();
+        if (this.sourceParameter < 0) this.sourceParameter = -1;
 
         //if method has no arguments it will be subscribed to all events
         Class[] args = method.getParameterTypes();
-        if (args == null || args.length != 1) {
-            this.eventType = annotation.eventType();
-            LOG.fine("Method {" + method + "} of type " + target.getClass() +
-                     " marked with @Subscribe but has no arguments, it will be subscribed to " + this.eventType);
-        } else {
-            this.eventType = args[0];
+
+        if (this.sourceParameter >= args.length) {
+            throw new IllegalArgumentException(
+                    "eventSourceParameter is '"+this.sourceParameter+"' but method has "+args.length+" arguments");
         }
 
-        this.target = new WeakReference(target);
-        this.method = method;
+        if (this.sourceParameter<0){
+            //attempting to determine source parameter when not specified in annotation
+            for (int i=0; i<args.length; i++) {
+                Class c = args[i];
+                if (EventSource.class.isAssignableFrom(c)){
+                    if (this.sourceParameter<0) {
+                        this.sourceParameter = i;
+                    } else {
+                        throw new IllegalArgumentException(
+                                "Ambiguous EventSource parameters: #"+this.sourceParameter+" and #"+i);
+                    }
+                }
+            }
+            if (args.length == 1 && this.sourceParameter == 0 && annotation.eventSourceParameter() <= -2) {
+                throw new IllegalArgumentException("Ambiguous EventSource, not sure if event type or source");
+            }
+        }
+
+
+
+        if (args.length >= 3 || args.length == 2 && this.sourceParameter < 0){
+            throw new IllegalArgumentException("Method has too many arguments, don't know for which to subscribe");
+        }
+
+        if (args.length == 2) {
+            this.eventParameter = args.length - 1 - this.sourceParameter;
+        } else if (args.length == 1) {
+            this.eventParameter = -1 - this.sourceParameter;
+        } else {
+            this.eventParameter = -1;
+        }
+
+        if (this.eventParameter>=0){
+            this.eventType = args[this.eventParameter];
+        } else {
+            this.eventType = annotation.eventType();
+        }
+
+        if(LOG.isLoggable(Level.FINE)){
+            LOG.fine("Subscribed {"+target+"}" +
+                     " method {"+method+"}" +
+                     " for events {"+this.eventType+"}" +
+                     " eventParameter="+this.eventParameter +
+                     " sourceParameter="+this.sourceParameter);
+        }
     }
 
     /**
@@ -107,18 +156,39 @@ public class WeakEventHandler {
      * @return results that were return by event handling method
      */
     public Object handleEvent(Object event) throws Throwable {
+        return handleEvent(event, null);
+    }
+
+
+    /**
+     * <p>Invokes event handling method.</p>
+     * <p>If method accepts 1 parameter it will pass it event object,
+     * otherwise it will invoke it without parameters</p>
+     * @param event event being notified of
+     * @return results that were return by event handling method
+     */
+    public Object handleEvent(Object event, EventSource source) throws Throwable {
         Object target = this.target.get();
         if (target == null) throw new WeakReferenceCollectedException();
         try {
-            if (method.getParameterTypes().length == 1) {
-                return method.invoke(target, event);
-            } else {
-                return method.invoke(target);
+
+            Object[] args = new Object[method.getParameterTypes().length];
+            for (int i = 0; i < args.length; i++) {
+                if (i == this.sourceParameter) {
+                    args[i] = source;
+                } else if (i == eventParameter) {
+                    args[i] = event;
+                } else {
+                    args[i] = null;
+                }
             }
+
+            return method.invoke(target,args);
         }catch (InvocationTargetException ex) {
             throw ex.getCause();
         }
     }
+
 
     @Override
     public String toString() {

@@ -33,11 +33,17 @@ public class EventNotifierTask extends RecursiveTask implements NotificationFutu
 
     private WeakEventHandler eventHandler;
     private Object           event;
-
+    private EventSource      source;
+    
     public EventNotifierTask(WeakEventHandler handler, Object event) {
+        this(handler, event, null);
+    }
+
+    public EventNotifierTask(WeakEventHandler handler, Object event, EventSource source) {
         super();
         this.eventHandler = handler;
         this.event = event;
+        this.source = source;
     }
 
     @Override
@@ -58,7 +64,7 @@ public class EventNotifierTask extends RecursiveTask implements NotificationFutu
     @Override
     protected Object compute() {
         try {
-            return eventHandler.handleEvent(event);
+            return eventHandler.handleEvent(event,source);
         } catch (WeakReferenceCollectedException ex) {
             LOG.log(Level.WARNING, ex.getMessage());
             completeExceptionally(ex);
