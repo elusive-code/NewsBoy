@@ -27,7 +27,7 @@ NewsBoy mimics EventBus from Google Guava, but has several differences:
     <dependency>
         <groupId>com.elusive-code.newsboy</groupId>
         <artifactId>NewsBoy</artifactId>
-        <version>0.1</version>
+        <version>0.2</version>
     </dependency>
 
 ```
