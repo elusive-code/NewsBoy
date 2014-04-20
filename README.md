@@ -18,7 +18,8 @@ NewsBoy mimics EventBus from Google Guava, but has several differences:
 
 ## Dependencies
 1. Java SE 7
-2. JUnit4 for tests
+2. Apache Commons Lang 3
+3. JUnit4 for tests
 
 ## Maven
 ```xml
