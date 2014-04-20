@@ -25,14 +25,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * <p>
- *     Implementation of {@link com.elusive_code.newsboy.EventService} that uses
- *     <ul>
- *         <li>weak references to store subscribers
- *         <li>asynchronous, and uses Fork-Join framework to schedule notifications
- *     </ul>
- *
- * </p>
+ * <p>Implementation of {@link com.elusive_code.newsboy.EventService} that uses</p>
+ * <ul>
+ *    <li>weak references to store subscribers</li>
+ *    <li>asynchronous, and uses Fork-Join framework to schedule notifications</li>
+ * </ul>
  *
  * @see com.elusive_code.newsboy.EventService
  * @see com.elusive_code.newsboy.Subscribe

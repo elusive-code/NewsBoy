@@ -24,12 +24,14 @@ package com.elusive_code.newsboy;
  *     marked with {@link com.elusive_code.newsboy.Subscribe} annotation.<br>
  *     This object should be passed to {@link com.elusive_code.newsboy.EventService#subscribe(Object)}.<br>
  * </p>
- *     <ul>
- *     <li>If event handling method has one argument, listener will be notified of the events
- *     that fit the type of that argument.<br>
- *     <li>If event handling method has no arguments, listener will notified of the events that fit {@link Subscribe#eventType()}
- *     </ul>
- * @see com.elusive_code.newsboy.Subscribe, com.elusive_code.newsboy.EventService
+ * <ul>
+ *     <li>If event handling method has one argument,
+ *     listener will be notified of the events that fit the type of that argument.</li>
+ *     <li>If event handling method has no arguments,
+ *     listener will notified of the events that fit {@link Subscribe#eventType()}</li>
+ * </ul>
+ *
+ * @see com.elusive_code.newsboy.Subscribe com.elusive_code.newsboy.EventService
  * @see AsyncEventService
  * @author Vladislav Dolgikh
  */

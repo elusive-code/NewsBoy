@@ -23,13 +23,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * <p>Stores event handling information, namely <br>
+ * <p>Stores event handling information, namely</p>
  *  <ul>
  *     <li>method that performs handling
  *     <li>target object on which this method is invoked
  *     <li>event type
  *  </ul>
- * </p>
  *
  * @see com.elusive_code.newsboy.Subscribe
  * @see AsyncEventService
@@ -154,6 +153,7 @@ public class WeakEventHandler {
      * otherwise it will invoke it without parameters</p>
      * @param event event being notified of
      * @return results that were return by event handling method
+     * @throws java.lang.Throwable exception produced by listener
      */
     public Object handleEvent(Object event) throws Throwable {
         return handleEvent(event, null);
@@ -165,7 +165,9 @@ public class WeakEventHandler {
      * <p>If method accepts 1 parameter it will pass it event object,
      * otherwise it will invoke it without parameters</p>
      * @param event event being notified of
+     * @param source event source that produced event
      * @return results that were return by event handling method
+     * @throws java.lang.Throwable exception produced by listener
      */
     public Object handleEvent(Object event, EventSource source) throws Throwable {
         Object target = this.target.get();

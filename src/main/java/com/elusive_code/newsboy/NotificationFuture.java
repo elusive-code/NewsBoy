@@ -21,13 +21,13 @@ import java.util.concurrent.Future;
 
 /**
  * <p>Future that represent notification results</p>
- * <p>Adds notification information to the {@link java.util.concurrent.Future}:
+ * <p>Adds notification information to the {@link java.util.concurrent.Future}:</p>
  * <ul>
- *     <li>event that triggered notification
- *     <li>listener being notified
- *     <li>method of the listener used to handle event
+ *     <li>event that triggered notification</li>
+ *     <li>listener being notified</li>
+ *     <li>method of the listener used to handle event</li>
  * </ul>
- * </p>
+ *
  * @see java.util.concurrent.Future
  * @see com.elusive_code.newsboy.EventService
  * @author Vladislav Dolgikh
@@ -36,16 +36,19 @@ public interface NotificationFuture extends Future {
 
     /**
      * Returns listener being notified
+     * @return target listener
      */
     Object getListener();
 
     /**
      * Returns method of the listener handling notification
+     * @return listener method
      */
     Method getMethod();
 
     /**
      * Returns triggered event
+     * @return triggered event
      */
     Object getEvent();
 

@@ -59,7 +59,7 @@ public class EventServiceHelper {
      * <p>Convenience overload for {@link #collectClassHierarchy(Class, java.util.Set)}
      * with second parameter set to null.</p>
      *
-     * @param clazz
+     * @param clazz class which hierarchy to collect
      * @return collection of classes that form hierarchy of supplied class
      */
     public static Set<Class> collectClassHierarchy(Class clazz) {
