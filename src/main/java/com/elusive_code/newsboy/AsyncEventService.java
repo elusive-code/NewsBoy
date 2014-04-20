@@ -16,13 +16,12 @@
 
 package com.elusive_code.newsboy;
 
-import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -64,12 +63,47 @@ public class AsyncEventService implements EventService {
 
     private ForkJoinPool notificatorPool;
 
+    private boolean saveEventStackTrace;
+
     public AsyncEventService() {
         this(Runtime.getRuntime().availableProcessors());
     }
 
     public AsyncEventService(int parallelism) {
-        notificatorPool = new ForkJoinPool(parallelism);
+        this(parallelism, true);
+    }
+
+    public AsyncEventService(int parallelism, boolean saveEventStackTrace) {
+        this.notificatorPool = new ForkJoinPool(parallelism);
+        this.saveEventStackTrace = saveEventStackTrace;
+    }
+
+    /**
+     * <p>Whether event publishing stack trace is stored</p>
+     *
+     * @see #setSaveEventStackTrace(boolean)
+     * @return true if it is stored
+     */
+    public boolean isSaveEventStackTrace() {
+        return saveEventStackTrace;
+    }
+
+    /**
+     * <p>
+     *     Defines whether to store event publishing stack trace.
+     * </p>
+     * <p>
+     *     If true, then if error occur during event handling it will attempt to add that stack trace
+     *     to the one of occurred exception.<br>
+     *     Event if it fails, that stack trace will be available through {@link EventNotifierTask#getEventStackTrace()}
+     * </p>
+     * <p>
+     *     By default it is true
+     * </p>
+     * @param saveEventStackTrace flag whether to store event stack trace
+     */
+    public void setSaveEventStackTrace(boolean saveEventStackTrace) {
+        this.saveEventStackTrace = saveEventStackTrace;
     }
 
     @Override
@@ -119,7 +153,11 @@ public class AsyncEventService implements EventService {
     @Override
     public List<NotificationFuture> publish ( Object event ) {
         if ( event == null ) return Collections.EMPTY_LIST;
-        PublishAction task = new PublishAction ( event );
+        EventStackTrace stackTrace = null;
+        if (saveEventStackTrace){
+            stackTrace = new EventStackTrace(event);
+        }
+        PublishAction task = new PublishAction ( event, stackTrace );
         notificatorPool.execute ( task );
         return new ArrayList<NotificationFuture>(task.getNotifiers());
     }
@@ -139,7 +177,12 @@ public class AsyncEventService implements EventService {
     @Subscribe
     public List<NotificationFuture> publishOrdered ( Object event ) {
         if ( event == null ) return Collections.EMPTY_LIST;
-        lastOrderedEvent = new PublishAction ( event, lastOrderedEvent, true );
+        EventStackTrace stackTrace = null;
+        if (saveEventStackTrace){
+            stackTrace = new EventStackTrace(event);
+        }
+        lastOrderedEvent = new PublishAction ( event, lastOrderedEvent, true, stackTrace );
+
         notificatorPool.execute ( lastOrderedEvent );
         return new ArrayList<NotificationFuture>(lastOrderedEvent.getNotifiers());
     }
@@ -168,15 +211,17 @@ public class AsyncEventService implements EventService {
         private List<EventNotifierTask> notifiers;
         private PublishAction           previousEvent;
         private boolean                 ordered;
+        private EventStackTrace         stackTrace;
 
-        public PublishAction(Object event) {
-            this(event, null, false);
+        public PublishAction(Object event, EventStackTrace stackTrace) {
+            this(event, null, false, stackTrace);
         }
 
-        public PublishAction(Object event, PublishAction previousEvent, boolean ordered) {
+        public PublishAction(Object event, PublishAction previousEvent, boolean ordered, EventStackTrace stackTrace) {
             this.event = event;
             this.ordered = ordered;
             this.previousEvent = previousEvent;
+            this.stackTrace = stackTrace;
             this.notifiers = Collections.unmodifiableList(collectNotifiers());
         }
 
@@ -205,7 +250,9 @@ public class AsyncEventService implements EventService {
                                 //listener collected by GC
                                 i.remove();
                             } else {
-                                EventNotifierTask task = new EventNotifierTask(eventHandler, event, AsyncEventService.this);
+                                EventNotifierTask task = new EventNotifierTask(eventHandler, event,
+                                                                               AsyncEventService.this,
+                                                                               stackTrace);
                                 notifiers.add(task);
                             }
                         }

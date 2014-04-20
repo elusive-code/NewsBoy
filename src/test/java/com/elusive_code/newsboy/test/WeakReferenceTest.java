@@ -17,6 +17,7 @@
 package com.elusive_code.newsboy.test;
 
 import com.elusive_code.newsboy.AsyncEventService;
+import com.elusive_code.newsboy.EventNotifierTask;
 import com.elusive_code.newsboy.NotificationFuture;
 import com.elusive_code.newsboy.Subscribe;
 import org.junit.Assert;
@@ -26,6 +27,8 @@ import org.junit.runners.JUnit4;
 
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @RunWith(JUnit4.class)
 public class WeakReferenceTest {
@@ -34,6 +37,7 @@ public class WeakReferenceTest {
 
     @Test
     public void test() throws Throwable {
+        Logger.getLogger(EventNotifierTask.class.getName()).setLevel(Level.SEVERE);
         AsyncEventService eventService = new AsyncEventService();
         System.out.println("Weak reference test being performed with listeners="+listeners);
         Runtime runtime = Runtime.getRuntime();
@@ -41,6 +45,7 @@ public class WeakReferenceTest {
         for (int i=0; i<listeners; i++) {
             eventService.subscribe(new EventListener());
         }
+
         System.out.println("Memory used after subscription: "+(runtime.totalMemory()-runtime.freeMemory()));
         System.gc();
         System.out.println("Memory used before notification: "+(runtime.totalMemory()-runtime.freeMemory()));

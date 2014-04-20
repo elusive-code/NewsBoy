@@ -21,13 +21,15 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by vlad on 20.04.14.
  */
 public class EventSourceTest {
 
-    public static  EventService service = new AsyncEventService();
+    public static AsyncEventService service = new AsyncEventService();
 
     @Test
     public void testSource() throws Exception{
@@ -50,7 +52,6 @@ public class EventSourceTest {
 
     @Test
     public void testCorruptedListners(){
-        EventService service = new AsyncEventService();
         try {
             service.subscribe(new CorruptedListener1());
             Assert.fail("Successfully subscribed corrupted listener, IllegalArgumentException expected");
@@ -63,6 +64,24 @@ public class EventSourceTest {
             Assert.fail("Successfully subscribed corrupted listener, IllegalArgumentException expected");
         }catch (IllegalArgumentException ex){
 
+        }
+    }
+
+    @Test
+    public void testError(){
+        Logger.getLogger(EventNotifierTask.class.getName()).setLevel(Level.SEVERE);
+        AsyncEventService service = new AsyncEventService();
+        service.subscribe(new ErrorListener());
+        service.setSaveEventStackTrace(true);
+
+        List<NotificationFuture> notifications = service.publish(new Object());
+        for (NotificationFuture f: notifications) {
+            try{
+                f.get();
+                Assert.fail("Throwable expected");
+            }catch (Throwable t) {
+
+            }
         }
     }
 
@@ -82,19 +101,28 @@ public class EventSourceTest {
         Assert.assertNotEquals(service,event);
     }
 
+
     public static class CorruptedListener1 {
 
         @Subscribe
-        public void onEvent(EventSource source){
-            Assert.assertEquals(this,source);
+        public void onEvent(EventSource source) {
+            Assert.assertEquals(this, source);
         }
     }
 
     public static class CorruptedListener2 {
 
         @Subscribe
-        public void onEvent(EventSource event, EventSource source){
-            Assert.assertEquals(this,source);
+        public void onEvent(EventSource event, EventSource source) {
+            Assert.assertEquals(this, source);
+        }
+    }
+
+    public static class ErrorListener {
+
+        @Subscribe
+        public void onEvent(Object event) throws Throwable {
+            throw new Throwable("some error");
         }
     }
 

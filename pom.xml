@@ -97,6 +97,12 @@ http://blog.sonatype.com/2009/09/maven-tips-and-tricks-using-github/#.UyWdAvl_t3
             <artifactId>junit</artifactId>
             <version>4.11</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.3.1</version>
+        </dependency>
+
     </dependencies>
 
     <build>

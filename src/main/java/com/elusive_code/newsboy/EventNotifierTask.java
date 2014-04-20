@@ -16,7 +16,10 @@
 
 package com.elusive_code.newsboy;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.concurrent.RecursiveTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,6 +28,7 @@ import java.util.logging.Logger;
  * <p>Simple task that performs notification</p>
  * <p>If listener was claimed by garbage collector before event handling than
  * {@link com.elusive_code.newsboy.WeakReferenceCollectedException} is thrown</p>
+ *
  * @author Vladislav Dolgikh
  */
 public class EventNotifierTask extends RecursiveTask implements NotificationFuture {
@@ -34,16 +38,22 @@ public class EventNotifierTask extends RecursiveTask implements NotificationFutu
     private WeakEventHandler eventHandler;
     private Object           event;
     private EventSource      source;
-    
+    private EventStackTrace  eventStackTrace;
+
     public EventNotifierTask(WeakEventHandler handler, Object event) {
         this(handler, event, null);
     }
 
     public EventNotifierTask(WeakEventHandler handler, Object event, EventSource source) {
+        this(handler, event, source, null);
+    }
+
+    public EventNotifierTask(WeakEventHandler handler, Object event, EventSource source, EventStackTrace stackTrace) {
         super();
         this.eventHandler = handler;
         this.event = event;
         this.source = source;
+        this.eventStackTrace = stackTrace;
     }
 
     @Override
@@ -61,18 +71,35 @@ public class EventNotifierTask extends RecursiveTask implements NotificationFutu
         return event;
     }
 
+    public EventStackTrace getEventStackTrace() {
+        return eventStackTrace;
+    }
+
     @Override
     protected Object compute() {
         try {
-            return eventHandler.handleEvent(event,source);
+            return eventHandler.handleEvent(event, source);
         } catch (WeakReferenceCollectedException ex) {
             LOG.log(Level.WARNING, ex.getMessage());
             completeExceptionally(ex);
             return null;
         } catch (Throwable ex) {
-            LOG.log(Level.SEVERE, "Failed to invoke " + eventHandler + " with " + event + "\n",ex);
+            LOG.log(Level.WARNING, "Failed to invoke " + eventHandler + " with " + event + "\n", ex);
+            updateStackTrace(ex);
             completeExceptionally(ex);
             return null;
         }
-    }    
+    }
+
+    private void updateStackTrace(Throwable ex) {
+        if (eventStackTrace == null) return;
+        try {
+            StackTraceElement[] stack1 = ex.getStackTrace();
+            StackTraceElement[] stack2 = eventStackTrace.getStackTrace();
+            StackTraceElement[] result = ArrayUtils.addAll(stack1, stack2);
+            ex.setStackTrace(result);
+        } catch (Throwable t) {
+            LOG.log(Level.FINE, "Failed to update stack trace for " + ex, t);
+        }
+    }
 }
