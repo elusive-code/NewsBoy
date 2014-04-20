@@ -36,7 +36,7 @@ http://blog.sonatype.com/2009/09/maven-tips-and-tricks-using-github/#.UyWdAvl_t3
 
     <groupId>com.elusive-code.newsboy</groupId>
     <artifactId>NewsBoy</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.2</version>
     <packaging>jar</packaging>
 
     <name>NewsBoy</name>
